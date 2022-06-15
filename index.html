@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<script src="https://d3js.org/d3.v4.js"></script>
+
+<div id="page"></div>
+<div>
+  <span>With the help of https://d3-graph-gallery.com/graph/barplot_animation_start.html</span>
+</div>
+
+
+<script>
+
+  // Dimensions and margins of the graph
+  var margin = { top: 100, right: 100, bottom: 100, left: 100 },
+    width = 1000 - margin.left - margin.right,
+    height = 700 - margin.top - margin.bottom;
+
+  // Append svg
+  var svg = d3.select("#page")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform",
+      "translate(" + margin.left + "," + margin.top + ")");
+
+  svg.append("text")
+    .attr("font-size", "20px")
+    .attr("text-anchor", "middle")
+    .attr("transform", "translate(350,5)")
+    .text("Crime Cases");
+
+  // Fetch data
+  fetch('https://data.gov.sg/api/action/datastore_search?resource_id=83c21090-bd19-4b54-ab6b-d999c251edcf')
+    .then(response => response.json())
+    .then(data => {
+
+      var record = data.result.records;
+
+      // x-axis
+      var x_axis = d3.scaleBand()
+        .range([0, width])
+        .domain(record.map(function (d) { return d.level_2; }))
+        .padding(0.5);
+      svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x_axis))
+        .selectAll("text")
+        .attr("transform", "translate(-10,0)rotate(-45)")
+        .style("text-anchor", "end");
+
+      // y-axis
+      var y_axis = d3.scaleLinear()
+        .domain([0, 20000])
+        .range([height, 0]);
+      svg.append("g")
+        .call(d3.axisLeft(y_axis));
+
+      // Bars
+      svg.selectAll("mybar")
+        .data(record)
+        .enter()
+        .append("rect")
+        .attr("x", function (d) { return x_axis(d.level_2); })
+        .attr("width", x_axis.bandwidth())
+        .attr("fill", "pink")
+        .attr("height", function (d) { return height - y_axis(0); }) // always equal to 0
+        .attr("y", function (d) { return y_axis(0); })
+
+      // Animation
+      svg.selectAll("rect")
+        .transition()
+        .duration(500)
+        .attr("y", function (d) { return y_axis(d.value); })
+        .attr("height", function (d) { return height - y_axis(d.value); })
+
+    })
+
+
+</script>
